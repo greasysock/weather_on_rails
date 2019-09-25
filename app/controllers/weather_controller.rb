@@ -1,10 +1,12 @@
 class WeatherController < ApplicationController
+    include OpenWeather
     def index
     end
     def location
-        app_id = Rails.application.credentials.open_weather_key
-        response = Faraday.get("http://api.openweathermap.org/data/2.5/weather?lat=#{location_params[:lat]}&lon=#{location_params[:lon]}&appid=#{app_id}")
-        puts response.body
+        serialized_weather = fetch_six_day_forecast_at location_params[:lat], location_params[:lon]
+        respond_to do |format|
+            format.json{render :json => serialized_weather}
+        end
     end
     private
     def location_params

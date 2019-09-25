@@ -5,7 +5,7 @@ module WeatherHelper
         5.times do |i|
             out_days << content_tag(:div, class: 'secondary_weather_container') do
                 out_day = ''
-                out_day << content_tag(:div, class: 'temp', id: i+1) do
+                out_day << content_tag(:div, class: 'temp', id: "day#{i+1}") do
                     ('--&deg').html_safe
                 end
                 out_day << content_tag(:div, class: 'day') do
