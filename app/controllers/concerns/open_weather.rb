@@ -10,7 +10,7 @@ module OpenWeather
     five_day_forecast = JSON.parse(five_day_forecast_response.body)
 
     six_day_forecast_serialized = {
-      :location => todays_weather["name"],
+      :location => "#{todays_weather["name"]}, #{todays_weather["sys"]["country"]}",
       :forecast => [
         todays_weather["main"]["temp"]
       ]
@@ -20,6 +20,8 @@ module OpenWeather
     highest_high = five_day_forecast["list"][0]["main"]["temp"]
 
     day_index = 1
+    six_day_forecast_serialized[:forecast][day_index] = highest_high
+
 
     # Pull highest temp from each day from hourly forecast. Lowest temp typically occurs at night and usually is irrelevant but normally I would pull the highest high, and lowest low.
     five_day_forecast["list"].each do |forecast|
