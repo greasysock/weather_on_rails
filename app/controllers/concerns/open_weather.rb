@@ -9,30 +9,32 @@ module OpenWeather
     todays_weather = JSON.parse(todays_weather_response.body)
     five_day_forecast = JSON.parse(five_day_forecast_response.body)
 
+    # This is the serialized version being sent to the client. It only contains relevant information. Just the location followed by the six-day forecast
     six_day_forecast_serialized = {
       :location => "#{todays_weather["name"]}, #{todays_weather["sys"]["country"]}",
       :forecast => [
         todays_weather["main"]["temp"]
       ]
     }
-    current_day = Date.tomorrow
-    next_day = current_day.tomorrow
+    current_day = Time.zone.now.beginning_of_day + 1.day
+    next_day = current_day + 1.day
     highest_high = five_day_forecast["list"][0]["main"]["temp"]
 
     day_index = 1
     six_day_forecast_serialized[:forecast][day_index] = highest_high
-
-
-    # Pull highest temp from each day from hourly forecast. Lowest temp typically occurs at night and usually is irrelevant but normally I would pull the highest high, and lowest low.
     five_day_forecast["list"].each do |forecast|
-      current_time = Time.at(forecast["dt"])
+
+      # Find current time by UTC and then offset with given offset to make sure the day ranges are correct to capture the correct high's regardless of timezone
+      current_time = Time.zone.at(forecast["dt"]+five_day_forecast["city"]["timezone"])
       temp = forecast["main"]["temp"]
 
-      if (current_time > current_day) and (current_time < next_day) and (temp > highest_high)
+      if (current_time >= current_day) and (current_time < next_day) and (temp > highest_high)
         six_day_forecast_serialized[:forecast][day_index] = temp 
-      elsif current_time > next_day
+        highest_high = temp
+      elsif current_time >= next_day
         highest_high = temp
         day_index += 1
+        six_day_forecast_serialized[:forecast][day_index] = temp 
         current_day = current_day.tomorrow
         next_day = current_day.tomorrow
       end
