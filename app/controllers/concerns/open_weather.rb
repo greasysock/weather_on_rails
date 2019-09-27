@@ -16,8 +16,8 @@ module OpenWeather
         todays_weather["main"]["temp"]
       ]
     }
-    current_day = Time.zone.now.beginning_of_day + 1.day
-    next_day = current_day + 1.day
+    current_day = Time.zone.now.beginning_of_day.tomorrow
+    next_day = current_day.tomorrow
     highest_high = five_day_forecast["list"][0]["main"]["temp"]
 
     day_index = 1
@@ -38,7 +38,9 @@ module OpenWeather
         current_day = current_day.tomorrow
         next_day = current_day.tomorrow
       end
+
     end
+    
     six_day_forecast_serialized
   end
 end
