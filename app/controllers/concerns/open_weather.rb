@@ -16,21 +16,30 @@ module OpenWeather
         todays_weather["main"]["temp"]
       ]
     }
-    current_day = Time.zone.now.beginning_of_day.tomorrow
+
+    # Used to shift all frame of time to correct offset. Could not find any built-in methods to set a fixed offset.
+    utc_offset = five_day_forecast["city"]["timezone"]
+
+    # Find the current day (tomorrow) and the day after relative to the client
+    current_day = (Time.zone.now + utc_offset).beginning_of_day.tomorrow
     next_day = current_day.tomorrow
-    highest_high = five_day_forecast["list"][0]["main"]["temp"]
 
+    # Set the loop up with the first measurement
+    highest_high = nil
+
+    # Create index for moving days
     day_index = 1
-    six_day_forecast_serialized[:forecast][day_index] = highest_high
-    five_day_forecast["list"].each do |forecast|
 
+    five_day_forecast["list"].each do |forecast|
       # Find current time by UTC and then offset with given offset to make sure the day ranges are correct to capture the correct high's regardless of timezone
-      current_time = Time.zone.at(forecast["dt"]+five_day_forecast["city"]["timezone"])
+      current_time = Time.zone.at(forecast["dt"]+utc_offset)
       temp = forecast["main"]["temp"]
 
-      if (current_time >= current_day) and (current_time < next_day) and (temp > highest_high)
-        six_day_forecast_serialized[:forecast][day_index] = temp 
-        highest_high = temp
+      if (current_time >= current_day) and (current_time < next_day)
+        if (!highest_high) or (temp > highest_high)
+          six_day_forecast_serialized[:forecast][day_index] = temp 
+          highest_high = temp
+        end
       elsif current_time >= next_day
         highest_high = temp
         day_index += 1
@@ -40,7 +49,7 @@ module OpenWeather
       end
 
     end
-    
+
     six_day_forecast_serialized
   end
 end
